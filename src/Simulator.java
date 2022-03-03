@@ -39,7 +39,7 @@ public class Simulator {
 		Double monRate = Double.POSITIVE_INFINITY;
 
 		for (int i = 0; i < resources.size(); ++i) {
-			//TODO: EDIT CODE HERE FOR PROBABILITY LISTS?
+			// TODO: EDIT CODE HERE FOR PROBABILITY LISTS?
 			Double rate = resources.get(i).getRate();
 			if (monRate > rate) {
 				monRate = rate;
@@ -107,16 +107,18 @@ public class Simulator {
 		/* Create a new traffic sink */
 		Sink trafficSink = new Sink(sim.timeline);
 
-		/* Create new single-cpu processing server */
-		SimpleServer S0 = new SimpleServer(sim.timeline, vars.get(2));
-		SimpleServer S1 = new SimpleServer(sim.timeline, vars.get(3));
+		/* Create a server with 1 cpu and infinite queue length */
+		SimpleServer S0 = new SimpleServer(1, 0, sim.timeline, vars.get(2));
+		/* Create a server with 2 cpus and infinite queue length */
 		// TODO: IMPLEMENT DUAL CORE SERVER
-		SimpleServer S2 = new SimpleServer(sim.timeline, vars.get(4), 2);
+		SimpleServer S1 = new SimpleServer(2, 0, sim.timeline, vars.get(3));
+		/* Create a server with 1 cpu and a max queue length of k */
+		SimpleServer S2 = new SimpleServer(1, vars.get(11), sim.timeline, vars.get(4));
+		/* Create a server with 1 cpu and a probability assigned to a service time */
 		// TODO: IMPLEMENT SERVER WITH PROBABILITY/TIME LISTS
-		SimpleServer S3 = new SimpleServer(sim.timeline,
+		SimpleServer S3 = new SimpleServer(1, 0, sim.timeline,
 				new double[] { vars.get(5), vars.get(7), vars.get(9) }, // times
-				new double[] { vars.get(6), vars.get(8), vars.get(10) }, // probabilities
-				vars.get(11) // max queue len
+				new double[] { vars.get(6), vars.get(8), vars.get(10) } // probabilities
 		);
 
 		/*

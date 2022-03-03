@@ -1,7 +1,9 @@
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /***************************************************/
-/* CS-350 Spring 2022 - Homework 3 - Code Solution   */
+/* CS-350 Spring 2022 - Homework 3 - Code Solution */
 /* Author: Renato Mancuso (BU)                     */
 /*                                                 */
 /* Description: This class implements the logic of */
@@ -13,13 +15,10 @@ import java.util.LinkedList;
 
 class SimpleServer extends EventGenerator {
 
-	private LinkedList<Request> theQueue = new LinkedList<Request>();
-	private Double servTime;
 	private String name = null;
-	private int numCores = 1;
-	private double[] times = null;
-	private double[] probs = null;
-	private double maxLen = 0; // 0 default = infinite queue
+	private LinkedList<Request> theQueue = new LinkedList<Request>();
+	Map<Double, Double> serviceTimeTable = new HashMap<>();
+	private double maxQLen = 0; // 0 default = infinite queue
 
 	/* Statistics of this server --- to construct rolling averages */
 	private Double cumulQ = 0.0;
@@ -30,24 +29,21 @@ class SimpleServer extends EventGenerator {
 	private int snapCount = 0;
 	private int servedReqs = 0;
 
-	public SimpleServer(Timeline timeline, Double servTime) {
+	public SimpleServer(int numCores, double maxQLen, Timeline timeline, Double servTime) {
 		super(timeline);
-
-		/* Initialize the average service time of this server */
-		this.servTime = servTime;
+		this.maxQLen = maxQLen;
+		// put a service time in the service time table with a 100% chance of occuring
+		this.serviceTimeTable.put(servTime, 1.0);
 	}
 
-	public SimpleServer(Timeline timeline, Double servTime, int numCores){
+	public SimpleServer(int numCores, double maxQLen, Timeline timeline, double[] times, double[] probs) {
 		super(timeline);
-		this.servTime = servTime;
-		this.numCores = numCores;
-	}
-
-	public SimpleServer(Timeline timeline, double[] times, double[] probs, Double maxLen) {
-		super(timeline);
-		this.times = times;
-		this.probs = probs;
-		this.maxLen = maxLen;
+		this.maxQLen = maxQLen;
+		// load variables into the server's time table
+		for (int i = 0; i < times.length; i++) {
+			double prob = probs[i];
+			serviceTimeTable.merge(times[i], prob, (key, val) -> (val + prob));
+		}
 	}
 
 	/*
@@ -63,43 +59,49 @@ class SimpleServer extends EventGenerator {
 	 * for a queued/arrived request.
 	 */
 	private void __startService(Event evt, Request curRequest) {
-		//TODO: EDIT EVENT GENERATION CODE SERVETIME TO WORK WITH THE LISTS
-		double dice = Math.random();
-		if((this.times != null) && (this.probs != null)){
-			//TODO
-		}else{
-			Event nextEvent = new Event(EventType.DEATH, curRequest,
-			evt.getTimestamp() + Exp.getExp(1 / this.servTime), this);
-		}
+		double serviceTime = this.getServiceTime();
+
+		/* Generate death event */
+		Event nextEvent = new Event(EventType.DEATH, curRequest, evt.getTimestamp() + Exp.getExp(1 / serviceTime),
+				this);
 
 		curRequest.recordServiceStart(evt.getTimestamp());
 		cumulTw += curRequest.getServiceStart() - curRequest.getArrival();
-
 		/* Print the occurrence of this event */
 		System.out.println(curRequest + " START" +
 				(this.name != null ? " " + this.name : "") +
 				": " + evt.getTimestamp());
-
 		super.timeline.addEvent(nextEvent);
 	}
 
 	@Override
 	void receiveRequest(Event evt) {
-		super.receiveRequest(evt);
-
 		Request curRequest = evt.getRequest();
 
-		curRequest.recordArrival(evt.getTimestamp());
+		// if queue length isn't infinite and the queue size is less than maxq, start
+		// request as
+		// per usual
+		if ((maxQLen != 0) && (theQueue.size() < maxQLen)) {
+			super.receiveRequest(evt);
+			curRequest.recordArrival(evt.getTimestamp());
 
-		/*
-		 * Upon receiving the request, check the queue size and act
-		 * accordingly
-		 */
-		if (theQueue.isEmpty()) {
-			__startService(evt, curRequest);
+			/*
+			 * Upon receiving the request, check the queue size and act
+			 * accordingly
+			 */
+
+			if (theQueue.isEmpty()) {
+				__startService(evt, curRequest);
+			}
+
+			theQueue.add(curRequest);
+		} else {
+			// Drop request and print the event
+			System.out.println(curRequest + " DROP" +
+					(this.name != null ? " " + this.name : "") +
+					": " + evt.getTimestamp());
 		}
 
-		theQueue.add(curRequest);
 	}
 
 	@Override
@@ -133,12 +135,33 @@ class SimpleServer extends EventGenerator {
 
 			__startService(evt, nextRequest);
 		}
-
 	}
 
+	//get service time using the service time table probabilities
+	private double getServiceTime() throws RuntimeException{
+		double dice = Math.random();
+		double cumulP = 0;
+		for(Map.Entry<Double, Double> entry : serviceTimeTable.entrySet()){
+			cumulP += entry.getValue();
+
+			if(dice < cumulP){
+				return entry.getKey();
+			}
+		}
+
+		throw new RuntimeException(
+			new Exception("ERROR GETTING SERVICE TIME IN SERVER " + this.name)
+		);
+	}
+
+	//returns average service time
 	@Override
 	Double getRate() {
-		return 1 / this.servTime;
+		double cumulTs = 0;
+		for(Map.Entry<Double, Double> entry : serviceTimeTable.entrySet()){
+			cumulTs += (entry.getKey() * entry.getValue());
+		}
+		return cumulTs / serviceTimeTable.size();
 	}
 
 	@Override
