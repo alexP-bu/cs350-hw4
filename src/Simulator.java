@@ -1,17 +1,5 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
-
-/***************************************************/
-/* CS-350 Spring 2022 - Homework 3 - Code Solution   */
-/* Author: Renato Mancuso (BU)                     */
-/*                                                 */
-/* Description: This class implements the logic of */
-/*   a simulator where a single source of events   */
-/*   is connected to a single exit point, with a   */
-/*   single-processor server in the middle.        */
-/*                                                 */
-/***************************************************/
-
 public class Simulator {
 
 	/* These are the resources that we intend to monitor */
@@ -78,13 +66,17 @@ public class Simulator {
 
 			/* Handle event */
 			block.processEvent(evt);
-
 		}
 
+		double qtot = 0;
 		/* Print all the statistics */
 		for (int i = 0; i < resources.size(); ++i) {
 			resources.get(i).printStats(now);
+			qtot += resources.get(i).getQ();
 		}
+
+		/* print QTOT */
+		System.out.println("QTOT: " + qtot);
 
 	}
 
@@ -127,7 +119,8 @@ public class Simulator {
 		 */
 		S0.setName("S0");
 		S1.setName("S1");
-		S1.setName("S3");
+		S2.setName("S2");
+		S3.setName("S3");
 
 		/* Create two routing nodes */
 		RoutingNode rn1 = new RoutingNode(sim.timeline);
@@ -148,6 +141,7 @@ public class Simulator {
 		/* Add resources to be monitored */
 		sim.addMonitoredResource(S0);
 		sim.addMonitoredResource(S1);
+		sim.addMonitoredResource(S2);
 		sim.addMonitoredResource(S3);
 		sim.addMonitoredResource(trafficSink);
 
@@ -156,5 +150,3 @@ public class Simulator {
 	}
 
 }
-
-/* END -- Q1BSR1QgUmVuYXRvIE1hbmN1c28= */

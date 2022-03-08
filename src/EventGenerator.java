@@ -78,10 +78,13 @@ class EventGenerator {
         /* Do nothing */
     }
 
+    public double getQ(){
+        return 0.0;
+    }
+
     @Override
     public String toString() {
         return "";
     }
 }
 
-/* END -- Q1BSR1QgUmVuYXRvIE1hbmN1c28= */

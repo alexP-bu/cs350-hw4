@@ -13,6 +13,8 @@ import java.util.Map;
 
 class RoutingNode extends EventGenerator {
 
+	private String name= "RoutingNode";
+
 	private HashMap<EventGenerator, Double> routingTable = new HashMap<EventGenerator, Double>();
 
 	public RoutingNode(Timeline timeline) {

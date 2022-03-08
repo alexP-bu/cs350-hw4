@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Launch Exp",
+            "request": "launch",
+            "mainClass": "Exp",
+            "projectName": "cs350-hw4_3fc5adb6"
+        },
+        {
+            "type": "java",
+            "name": "Launch Simulator",
+            "request": "launch",
+            "mainClass": "Simulator",
+            "projectName": "cs350-hw4_3fc5adb6",
+            "args": "1000000 0.008 100 100 100 100 0.1 100 0.1 100 0.8 10 0 1 1 0 0"
+        }
+    ]
+}
