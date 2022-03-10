@@ -86,5 +86,13 @@ class EventGenerator {
     public String toString() {
         return "";
     }
+
+    public String getName(){
+        return "";
+    }
+
+    public double getTRESP() {
+        return 0;
+    }
 }
 

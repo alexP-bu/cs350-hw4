@@ -21,14 +21,14 @@ class SimpleServer extends EventGenerator {
 	private int snapCount = 0;
 	private int servedReqs = 0;
 
-	public SimpleServer(int numCores, double maxQLen, Timeline timeline, Double servTime) {
+	public SimpleServer(double maxQLen, Timeline timeline, Double servTime) {
 		super(timeline);
 		this.maxQLen = maxQLen;
 		// put a service time in the service time table with a 100% chance of occuring
 		this.serviceTimesTable.put(servTime, 1.0);
 	}
 
-	public SimpleServer(int numCores, double maxQLen, Timeline timeline, double[] times, double[] probs) {
+	public SimpleServer(double maxQLen, Timeline timeline, double[] times, double[] probs) {
 		super(timeline);
 		this.maxQLen = maxQLen;
 		// load variables into the server's time table
@@ -75,13 +75,13 @@ class SimpleServer extends EventGenerator {
 	@Override
 	void receiveRequest(Event evt) {
 		Request curRequest = evt.getRequest();
+		super.receiveRequest(evt);
+		curRequest.recordArrival(evt.getTimestamp());
 		
 		// add request if:
 		// queue length is infinite
 		// or queue length is less than size
-		if ((maxQLen == 0) || (theQueue.size() - 1 < maxQLen)) {
-			super.receiveRequest(evt);
-			curRequest.recordArrival(evt.getTimestamp());
+		if ((maxQLen == 0) || (theQueue.size() < maxQLen)) {
 			/*
 			 * Upon receiving the request, check the queue size and act
 			 * accordingly if there are available cores
@@ -181,6 +181,8 @@ class SimpleServer extends EventGenerator {
 			System.out.println("UTIL: " + busyTime / time);
 			System.out.println("QLEN: " + cumulQ / snapCount);
 			System.out.println("TRESP: " + cumulTq / servedReqs);
+		} else if(this.name.equals("S1,1") || this.name.equals("S1,2")){
+			System.out.println(this.name + " UTIL: " + busyTime / time);
 		} else {
 			System.out.println(this.name + " UTIL: " + busyTime / time);
 			System.out.println(this.name + " QLEN: " + cumulQ / snapCount);
@@ -202,4 +204,12 @@ class SimpleServer extends EventGenerator {
 		return (this.name != null ? this.name : "");
 	}
 
+	@Override 
+	public String getName(){
+		return name;
+	}
+	@Override
+	public double getTRESP(){
+		return cumulTq / servedReqs;
+	}
 }
