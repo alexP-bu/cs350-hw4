@@ -34,7 +34,11 @@ class SimpleServer extends EventGenerator {
 		// load variables into the server's time table
 		for (int i = 0; i < times.length; i++) {
 			double prob = probs[i];
-			serviceTimesTable.merge(times[i], prob, (key, val) -> (val + prob));
+			if(serviceTimesTable.containsKey(times[i])){
+				serviceTimesTable.compute(times[i], (key,val) -> (val + prob));
+			}else{
+				serviceTimesTable.put(times[i], prob);
+			}
 		}
 	}
 
@@ -95,7 +99,6 @@ class SimpleServer extends EventGenerator {
 					(this.name != null ? " " + this.name : "") +
 					": " + evt.getTimestamp());
 			curRequest.recordDeparture(evt.getTimestamp());
-			servedReqs++;
 			dropped++;
 		}
 
